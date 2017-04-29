@@ -1,4 +1,4 @@
-import searchlaads
+from ..searchlaads.searchLAADS import searchLAADS
 # server = WSDL.Proxy(wsdl)
 # server.config.dumpSOAPOut = 1
 # server.config.dumpSOAPIn = 1

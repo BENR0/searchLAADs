@@ -15,7 +15,7 @@ def test_basic():
 
     #start and end times as datetime obj
     endtime = "201704270000"
-    starttime = "201704250000"
+    starttime = "201004250000"
 
 
     product = "MOD35_L2"

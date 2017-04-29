@@ -1,8 +1,14 @@
+# -*- coding: utf-8 -*-
 import os
 import math
+import progressbar
+import logging
 from SOAPpy import WSDL
 from SOAPpy import SOAPProxy
 from datetime import datetime, timedelta
+
+
+logger = logging.getLogger(__name__)
 
 
 class searchLAADS(object):
@@ -12,7 +18,10 @@ class searchLAADS(object):
     serviceURL = "https://modwebsrv.modaps.eosdis.nasa.gov/axis2/services/MODAPSservices"
     server = SOAPProxy(serviceURL)
 
-    LAADSmaxFiles = 3000
+    #Max results returned from LAADS web API is 6000
+    #setting it lower to split large queries into many chunks
+    #to avoid server 502 error
+    LAADSmaxFiles = 1000
 
     def __init__(self, product, collection, stime, etime, bbox, coordsOrTiles, dayNightBoth):
         self.product = product
@@ -111,12 +120,20 @@ class searchLAADS(object):
         return chunkList
 
 
-    def list_prods():
-        prods = server.listProducts()
+    def list_prods(self):
+        """Get a list of available products
 
-        for item in prods:
-            print(item["Name"])
-        return
+        Return
+        ------
+        list: List of product names
+
+        """
+
+        prods = self.server.listProducts()
+
+        prodList = [prod["Name"] for prod in prods]
+        
+        return prodList
 
 
     def searchFiles(self):
@@ -141,15 +158,20 @@ class searchLAADS(object):
         fileURLs = []
 
         tchunks = self.timeChunks()
+	logger.debug("Number of time chunks: {0}".format(len(tchunks)))
         if len(tchunks) > 1:
             print("It seems your are trying to search for many files. This may take a while...")
         else:
             print("Searching for files...")
 
 
-        for chunk in tchunks:
-            starttime = chunk[0].strftime("%Y-%m-%d %H:%M")
-            endtime = chunk[1].strftime("%Y-%m-%d %H:%M")
+        bar = progressbar.ProgressBar()
+
+        for i in bar(range(len(tchunks))):
+            starttime = tchunks[i][0].strftime("%Y-%m-%d %H:%M")
+            endtime = tchunks[i][1].strftime("%Y-%m-%d %H:%M")
+	    
+	    logger.debug("Current chunk: {0}".format((starttime,endtime)))
 
             IDs = self.server.searchForFiles(products=self.product, collection=self.collection, startTime=starttime, endTime=endtime,
                     north=north, south=south, east=east, west=west, coordsOrTiles=self.cot,
@@ -159,6 +181,8 @@ class searchLAADS(object):
             URLs = self.server.getFileUrls(fileIds=IDsFilestring)
 
             self.fileURLs += URLs
+
+            bar.update(i)
 
         pass
 
