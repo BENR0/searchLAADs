@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+form searchLAADS import *
 
 # Set default logging handler to avoid "No handler found" warnings.
 import logging

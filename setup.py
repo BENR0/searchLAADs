@@ -11,6 +11,7 @@ config = {
     'author_email': '.',
     'version': '0.1',
     'install_requires': ['nose', 'SOAPpy', 'progressbar2'],
+    'packages': ['searchlaads'],
     'scripts': ['scripts/mod35_l2.py'],
     'name': 'searchLAADS'
 }
