@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 import os
 import math
-import progressbar
+# import progressbar
+import urllib2
+import re
 import logging
+from tqdm import tqdm
 from SOAPpy import WSDL
 from SOAPpy import SOAPProxy
 from datetime import datetime, timedelta
+from multiprocessing.dummy import Pool # use threads
 
 
 logger = logging.getLogger(__name__)
@@ -165,9 +169,7 @@ class searchLAADS(object):
             print("Searching for files...")
 
 
-        bar = progressbar.ProgressBar()
-
-        for i in bar(range(len(tchunks))):
+        for i in tqdm(range(len(tchunks))):
             starttime = tchunks[i][0].strftime("%Y-%m-%d %H:%M")
             endtime = tchunks[i][1].strftime("%Y-%m-%d %H:%M")
 	    
@@ -182,7 +184,6 @@ class searchLAADS(object):
 
             self.fileURLs += URLs
 
-            bar.update(i)
 
         pass
 
@@ -214,5 +215,83 @@ class searchLAADS(object):
         
         pass
 
+        
+    def downloadFiles(self, directory, multiproc = False, numproc = 3):
+        """Download URLs.
+
+        Parameters
+        ----------
+        directory: str
+            Base directory where to save files
+        multiproc: boolean
+            Download multiple files at the same time.
+        numproc: int optional
+            Number of processes if multiproc is set to True
+
+        
+        Return
+        ------
+        """
+        def pathTuple(url, directory = directory):
+            secfield = os.path.basename(url).split(".")[1]
+            year = secfield[1:5]
+            outdir = os.path.join(directory, year)
+            return((url, outdir))
+
+        def download(itemtuple):
+            #unpack tuple
+            url = itemtuple[0]
+            directory = itemtuple[1]
+
+            fname = os.path.basename(url)
+            fpath = os.path.join(directory, fname)
+            #check if fpath exists. create if necessary 
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+
+            response = urllib2.urlopen(url)
+            with open(fpath, "wb") as f:
+                f.write(response.read())
+
+            #update progressbar
+            pbar.update(1)
+
+
+            return
+
+
+        pathList = list(map(pathTuple, self.fileURLs))
+
+        pbar = tqdm(total = len(pathList))
+
+        if multiproc:
+            p = Pool(numproc)
+            p.map(download, pathList)
+            p.close()
+            p.join()
+        else:
+            map(download, pathList)
+        
+        pbar.close()
+
+
+        #check if file was downloaded correctly else download again
+
+        pass
+
+    #######
+    #put checkFile in separate download class?
+    ######
+    # def checkFile(self, filHdf):
+        # """Check by using GDAL to be sure that the download went ok
+           # :param str filHdf: name of the HDF file to check
+           # :return: 0 if file is correct, 1 for error
+        # """
+        # try:
+            # gdal.Open(filHdf)
+            # return 0
+        # except (RuntimeError) as e:
+            # logger.error(e)
+	    # return 1 
 
 # if __name__ == "__main__":

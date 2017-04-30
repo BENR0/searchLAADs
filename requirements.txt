@@ -1,2 +1,2 @@
 SOAPpy==0.12.22
-progressbar2
+tqdm
