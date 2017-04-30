@@ -5,6 +5,7 @@ import math
 import urllib2
 import re
 import logging
+import gdal
 from tqdm import tqdm
 from SOAPpy import WSDL
 from SOAPpy import SOAPProxy
@@ -36,6 +37,8 @@ class searchLAADS(object):
         self.cot = coordsOrTiles
         self.dnb = dayNightBoth
         self.fileURLs = []
+        #path list also stores fileURLs so maybe change methods to accomodate that and remove
+        self.pathList = []
 
 
     def numTilesForBbox(self):
@@ -164,8 +167,10 @@ class searchLAADS(object):
         tchunks = self.timeChunks()
 	logger.debug("Number of time chunks: {0}".format(len(tchunks)))
         if len(tchunks) > 1:
+            logger.debug("It seems your are trying to search for many files. This may take a while...")
             print("It seems your are trying to search for many files. This may take a while...")
         else:
+            logger.debug("Searching for files...")
             print("Searching for files...")
 
 
@@ -202,17 +207,46 @@ class searchLAADS(object):
         ------
         """
 
+        logger.debug("Dumping file URLs to text file")
+
         if len(self.fileURLs) < 1:
+            logger.debug("There are no URLs to write. Please retrive file URLs by using the \"searchFiles\" function first.")
             print("There are no URLs to write. Please retrive file URLs by using the \"searchFiles\" function first.")
         else:
             #check if file exists
             if os.path.isfile(fname) & (not replace):
+                logger.debug("The file already exists. Please choose another name or set the \"replace\" parameter to True.")
                 print("The file already exists. Please choose another name or set the \"replace\" parameter to True.")
             else:
                 with open(fname, "w") as f:
                     for i in self.fileURLs:
                         f.write(i + "\n")
         
+        pass
+
+
+    def loadURLsFromFile(self, fpath):
+        """Load URLs from previously dumped text file
+
+        Parameters
+        ----------
+        fpath: str
+            Path to file
+
+        Return
+        ------
+        Stores files list in objects fileURLS variable
+        """
+
+        if os.path.isfile(fpath):
+            with open(fpath, "r") as f:
+                data = f.readlines()
+
+                for line in data:
+                    self.fileURLs.append(line)
+        else:
+            print("File does not exist. Please check filename and path.")
+
         pass
 
         
@@ -223,6 +257,8 @@ class searchLAADS(object):
         ----------
         directory: str
             Base directory where to save files
+        maxRetrys: int
+            Maximum number of retrys to open the url
         multiproc: boolean
             Download multiple files at the same time.
         numproc: int optional
@@ -246,7 +282,15 @@ class searchLAADS(object):
             fname = os.path.basename(url)
             fpath = os.path.join(directory, fname)
 
-            response = urllib2.urlopen(url)
+            while attempts < maxRetrys:
+                try:
+                    response = urllib2.urlopen(url)
+                    attempts += 1
+                except urllib2.URLError as e:
+                    logger.debug(e)
+                    logger.debug("File {0} failed to download with the above error".format(url))
+                    pass
+
             with open(fpath, "wb") as f:
                 f.write(response.read())
 
@@ -257,24 +301,27 @@ class searchLAADS(object):
             return
 
 
-        pathList = list(map(pathTuple, self.fileURLs))
+        self.pathList = list(map(pathTuple, self.fileURLs))
         
         #create year directories separate to avoid race condition when
         #using it in the download function itself and multiprocessing enabled
-        for d in set([x[1] for x in pathList]):
+        for d in set([x[1] for x in self.pathList]):
             #check if fpath exists. create if necessary 
             if not os.path.exists(d):
                 os.makedirs(d)
 
-        pbar = tqdm(total = len(pathList))
+        logger.debug("Starting download of files...")
+        print("Starting download of files...")
+
+        pbar = tqdm(total = len(self.pathList))
 
         if multiproc:
             p = Pool(numproc)
-            p.map(download, pathList)
+            p.map(download, self.pathList)
             p.close()
             p.join()
         else:
-            map(download, pathList)
+            map(download, self.pathList)
         
         pbar.close()
 
@@ -283,19 +330,35 @@ class searchLAADS(object):
 
         pass
 
-    #######
-    #put checkFile in separate download class?
-    ######
-    # def checkFile(self, filHdf):
-        # """Check by using GDAL to be sure that the download went ok
-           # :param str filHdf: name of the HDF file to check
-           # :return: 0 if file is correct, 1 for error
-        # """
-        # try:
-            # gdal.Open(filHdf)
-            # return 0
-        # except (RuntimeError) as e:
-            # logger.error(e)
-	    # return 1 
+
+    def checkFiles(self):
+        """Check by using GDAL to be sure that the download went ok
+
+        Parameters
+        ----------
+
+        Return
+        ------
+        return: 0 if file is correct, 1 for error
+        """
+
+        def check(fpath):
+            try:
+                gdal.Open(fpath)
+                return 0
+            except (RuntimeError) as e:
+                logger.error(e)
+                return 1 
+
+        print("Checking files...")
+        for i in tqdm(range(len(self.pathList))):
+            fToCheck = os.path.join(self.pathList[i][1], os.path.basename(self.pathList[i][0]))
+            #TODO
+            #store result of check somewhere and print result at the end
+            check(fToCheck)
+
+        pass
+
+        
 
 # if __name__ == "__main__":

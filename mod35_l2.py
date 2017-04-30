@@ -1,7 +1,22 @@
 from searchlaads.searchLAADS import searchLAADS
 import logging.config
 
-logging.basicConfig(level = logging.INFO)
+logging.basicConfig(level = logging.DEBUG,
+                    format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                    datefmt='%m-%d %H:%M',
+                    filename='debug.log',
+                    filemode='w')
+
+# #define handler which write info messages to screen
+# console = logging.StreamHandler()
+# console.setLevel(logging.INFO)
+# # set a format which is simpler for console use
+# # formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+# formatter = logging.Formatter('%(message)s')
+# # tell the handler to use this format
+# console.setFormatter(formatter)
+# # add the handler to the root logger
+# logging.getLogger('').addHandler(console)
 
 logger = logging.getLogger(__name__)
 
