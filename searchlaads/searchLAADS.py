@@ -5,7 +5,7 @@ import math
 import urllib2
 import re
 import logging
-import gdal
+#import gdal
 from tqdm import tqdm
 from SOAPpy import WSDL
 from SOAPpy import SOAPProxy
@@ -282,6 +282,8 @@ class searchLAADS(object):
             fname = os.path.basename(url)
             fpath = os.path.join(directory, fname)
 
+
+            attempts = 0
             while attempts < maxRetrys:
                 try:
                     response = urllib2.urlopen(url)
@@ -332,7 +334,7 @@ class searchLAADS(object):
 
 
     def checkFiles(self):
-        """Check by using GDAL to be sure that the download went ok
+        """Check files if they were downloaded correctly
 
         Parameters
         ----------
@@ -359,6 +361,54 @@ class searchLAADS(object):
 
         pass
 
-        
+    
+    def missingFiles(self, directory, outfile):
+        """Check for missing files in time window.
+        For example if file did not get downloaded correctly
+        or was skipped due to server errors.
+
+        Parameters
+        ----------
+        directory: str
+            Basedirectory were downloaded files are stored
+        outfile: str
+            File to save results to.
+
+        Returns
+        -------
+        Text file with missing file URLs
+        """
+
+        ###############
+        #MOVE THIS FUNCTION TO A COMMON PLACE, THEN REMOVE FROM HERE AND FROM DOWNLOAD FUNCTION
+        ##############
+        def pathTuple(url, directory = directory):
+            secfield = os.path.basename(url).split(".")[1]
+            year = secfield[1:5]
+            outdir = os.path.join(directory, year)
+            return((url, outdir))
+
+
+        self.pathList = list(map(pathTuple, self.fileURLs))
+        #list for urls of missing files
+        fmissing = []
+
+        print("Checking for missing files...")
+        with open(outfile, "w") as f:
+            for i in tqdm(range(len(self.pathList))):
+                fToCheck = os.path.join(self.pathList[i][1], os.path.basename(self.pathList[i][0]))
+                #TODO
+                #store result of check in object in addition to dump to text file to be able to download them again
+                if not os.path.isfile(fToCheck):
+                    f.write(self.pathList[i][0] + "\n")
+                    fmissing.append(self.pathList[i][0])
+
+        if len(fmissing) >= 1:
+            print("There are {0} files missing".format(len(fmissing)))
+
+
+        pass
+
+
 
 # if __name__ == "__main__":
