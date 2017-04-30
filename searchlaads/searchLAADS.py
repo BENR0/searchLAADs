@@ -250,7 +250,7 @@ class searchLAADS(object):
         pass
 
         
-    def downloadFiles(self, directory, multiproc = False, numproc = 3):
+    def downloadFiles(self, directory, maxRetrys = 5, multiproc = False, numproc = 3):
         """Download URLs.
 
         Parameters
