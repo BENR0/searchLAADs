@@ -261,7 +261,7 @@ class searchLAADS(object):
         
         #create year directories separate to avoid race condition when
         #using it in the download function itself and multiprocessing enabled
-        for d in set([x[1] for x in pathList]:
+        for d in set([x[1] for x in pathList]):
             #check if fpath exists. create if necessary 
             if not os.path.exists(d):
                 os.makedirs(d)
