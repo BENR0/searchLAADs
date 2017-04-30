@@ -245,9 +245,6 @@ class searchLAADS(object):
 
             fname = os.path.basename(url)
             fpath = os.path.join(directory, fname)
-            #check if fpath exists. create if necessary 
-            if not os.path.exists(directory):
-                os.makedirs(directory)
 
             response = urllib2.urlopen(url)
             with open(fpath, "wb") as f:
@@ -261,6 +258,13 @@ class searchLAADS(object):
 
 
         pathList = list(map(pathTuple, self.fileURLs))
+        
+        #create year directories separate to avoid race condition when
+        #using it in the download function itself and multiprocessing enabled
+        for d in set([x[1] for x in pathList]:
+            #check if fpath exists. create if necessary 
+            if not os.path.exists(d):
+                os.makedirs(d)
 
         pbar = tqdm(total = len(pathList))
 
