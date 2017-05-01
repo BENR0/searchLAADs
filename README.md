@@ -1,9 +1,11 @@
-### searchLAADS
+searchLAADS
+===========
 
 Module to search and download MODIS data via the SOAP API on the LAADS web.
 
 
-##### Description
+Description
+-----------
 
 The searchLAADS module contains functions to search for MODIS data based on
 a given time period and extent. The found files can then be downloaded from
@@ -21,7 +23,8 @@ Not all of the functions at this link are incorporated into the searchLAADS
 module, but might be added as needed in the future.
 
 
-##### Usage
+Usage
+-----
 
 There is an example script located in the scripts directory of the repository,
 which showcases a possible usage case.
@@ -47,7 +50,8 @@ Once it is clear which product should be downloaded a typical workflow would be
    the files which could not be downloaded.
 
 
-##### License
+License
+-------
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
