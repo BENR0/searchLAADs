@@ -260,9 +260,10 @@ class searchLAADS(object):
         Stores files list in objects fileURLS variable
         """
 
+        print("Reading URLs from file...")
         if os.path.isfile(fpath):
             with open(fpath, "r") as f:
-                data = f.readlines()
+                data = f.read().splitlines()
 
                 for line in data:
                     self.fileURLs.append(line)
@@ -290,6 +291,8 @@ class searchLAADS(object):
         Return
         ------
         """
+        directory = self.targetDir
+
         def pathTuple(url, directory = directory):
             secfield = os.path.basename(url).split(".")[1]
             year = secfield[1:5]
@@ -324,7 +327,6 @@ class searchLAADS(object):
 
             return
 
-        directory = self.targetDir
 
         try:
             if directory is not None:
