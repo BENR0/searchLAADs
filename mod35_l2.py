@@ -20,19 +20,16 @@ logging.basicConfig(level = logging.DEBUG,
 
 logger = logging.getLogger(__name__)
 
-# server = WSDL.Proxy(wsdl)
-# server.config.dumpSOAPOut = 1
-# server.config.dumpSOAPIn = 1
-
 #MOD35_L2 available between
 #officially available from 200002240000
 starttime = "200003010000"
-endtime = "201704270000"
+endtime = "200901010000"
 
 #MYD35_L2 available between
 #officially available from 200207040000"
 #starttime = "200208010000
 #endtime = "201704270000"
+
 
 product = "MOD35_L2"
 collection = 6
@@ -49,6 +46,5 @@ mod35 = searchLAADS(product, collection, starttime, endtime, bbox, coordsOrTiles
 
 mod35.searchFiles()
 
-mod35.dumpURLs("urls.txt", replace = True)
-# mod35.downloadFiles("data/", True)
-
+mod35.dumpURLs("2000_2009_urls.txt", replace = True)
+mod35.downloadFiles("/media/roesner/INTENSO/mod35_l2/", True)
