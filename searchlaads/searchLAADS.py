@@ -28,7 +28,7 @@ class searchLAADS(object):
     #to avoid server 502 error
     LAADSmaxFiles = 1000
 
-    def __init__(self, product, collection, stime, etime, bbox, coordsOrTiles, dayNightBoth):
+    def __init__(self, product, collection, stime, etime, bbox, coordsOrTiles, dayNightBoth, targetDir = ""):
         self.product = product
         self.collection = collection
         self.stime = datetime.strptime(stime, "%Y%m%d%H%M")
@@ -36,6 +36,7 @@ class searchLAADS(object):
         self.bbox = bbox
         self.cot = coordsOrTiles
         self.dnb = dayNightBoth
+        self.targetDir = targetDir
         self.fileURLs = []
         #path list also stores fileURLs so maybe change methods to accomodate that and remove
         self.pathList = []
@@ -271,7 +272,7 @@ class searchLAADS(object):
         pass
 
         
-    def downloadFiles(self, directory, maxRetries = 5, multiproc = False, numproc = 3):
+    def downloadFiles(self, directory = self.targetDir, maxRetries = 5, multiproc = False, numproc = 3):
         """Download URLs.
 
         Parameters
@@ -323,8 +324,11 @@ class searchLAADS(object):
 
             return
 
-
-        self.pathList = list(map(pathTuple, self.fileURLs))
+        if len(directory) < 1:
+            print("No target directory were to store files given. Instantiate search obejct with
+                    directory or set the directory parameter of downloadFiles.")
+        else:
+            self.pathList = list(map(pathTuple, self.fileURLs))
         
         #create year directories separate to avoid race condition when
         #using it in the download function itself and multiprocessing enabled
@@ -374,16 +378,22 @@ class searchLAADS(object):
                 return 1 
 
         print("Checking files...")
-        for i in tqdm(range(len(self.pathList))):
-            fToCheck = os.path.join(self.pathList[i][1], os.path.basename(self.pathList[i][0]))
+        if len(self.pathList) >= 1:
+            for i in tqdm(range(len(self.pathList))):
+                fToCheck = os.path.join(self.pathList[i][1], os.path.basename(self.pathList[i][0]))
+                #TODO
+                #store result of check somewhere and print result at the end
+                check(fToCheck)
+        else:
             #TODO
-            #store result of check somewhere and print result at the end
-            check(fToCheck)
+            #make it possible to instantiate object/ read in list of urls and directory with files
+            #to check
+            print("File list is empty. Search and download files first.")
 
         pass
 
     
-    def missingFiles(self, directory, outfile):
+    def checkMissincheckMissing(self, directory = self.targetDir, outfile):
         """Check for missing files in time window.
         For example if file did not get downloaded correctly
         or was skipped due to server errors.
@@ -410,7 +420,18 @@ class searchLAADS(object):
             return((url, outdir))
 
 
-        self.pathList = list(map(pathTuple, self.fileURLs))
+        #TODO
+        #make it possible to instantiate object/ read in list of urls and directory with files
+        #to check
+        if len(self.fileURLs) >= 1:
+            if len(directory) < 1:
+                print("No target directory were to store files given. Instantiate search obejct with
+                        directory or set the directory parameter of downloadFiles.")
+            else:
+                self.pathList = list(map(pathTuple, self.fileURLs))
+        else:
+            print("Search for files first.")
+
         #list for urls of missing files
         fmissing = []
 
