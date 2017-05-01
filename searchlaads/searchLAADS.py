@@ -28,7 +28,7 @@ class searchLAADS(object):
     #to avoid server 502 error
     LAADSmaxFiles = 1000
 
-    def __init__(self, product, collection, stime, etime, bbox, coordsOrTiles, dayNightBoth, targetDir = ""):
+    def __init__(self, product, collection, stime, etime, bbox, coordsOrTiles, dayNightBoth, targetDir = None):
         self.product = product
         self.collection = collection
         self.stime = datetime.strptime(stime, "%Y%m%d%H%M")
@@ -272,7 +272,7 @@ class searchLAADS(object):
         pass
 
         
-    def downloadFiles(self, directory = self.targetDir, maxRetries = 5, multiproc = False, numproc = 3):
+    def downloadFiles(self, directory = None, maxRetries = 5, multiproc = False, numproc = 3):
         """Download URLs.
 
         Parameters
@@ -324,11 +324,16 @@ class searchLAADS(object):
 
             return
 
-        if len(directory) < 1:
-            print("No target directory were to store files given. Instantiate search obejct with
-                    directory or set the directory parameter of downloadFiles.")
-        else:
-            self.pathList = list(map(pathTuple, self.fileURLs))
+        directory = self.targetDir
+
+        try:
+            if directory is not None:
+                self.pathList = list(map(pathTuple, self.fileURLs))
+            else:
+                raise TypeError
+        except TypeError:
+            print("""No target directory were to store files given. Instantiate search obejct with 
+                    directory or set the directory parameter of downloadFiles.""")
         
         #create year directories separate to avoid race condition when
         #using it in the download function itself and multiprocessing enabled
@@ -393,7 +398,7 @@ class searchLAADS(object):
         pass
 
     
-    def checkMissincheckMissing(self, directory = self.targetDir, outfile):
+    def checkMissincheckMissing(self, directory = None, outfile = None):
         """Check for missing files in time window.
         For example if file did not get downloaded correctly
         or was skipped due to server errors.
@@ -419,16 +424,20 @@ class searchLAADS(object):
             outdir = os.path.join(directory, year)
             return((url, outdir))
 
+        directory = self.targetDir
 
         #TODO
         #make it possible to instantiate object/ read in list of urls and directory with files
         #to check
         if len(self.fileURLs) >= 1:
-            if len(directory) < 1:
-                print("No target directory were to store files given. Instantiate search obejct with
-                        directory or set the directory parameter of downloadFiles.")
-            else:
-                self.pathList = list(map(pathTuple, self.fileURLs))
+            try:
+                if directory is not None:
+                    self.pathList = list(map(pathTuple, self.fileURLs))
+                else:
+                    raise TypeError
+            except TypeError:
+                print("""No target directory were to store files given. Instantiate search obejct with
+                        directory or set the directory parameter of downloadFiles.""")
         else:
             print("Search for files first.")
 
@@ -436,14 +445,17 @@ class searchLAADS(object):
         fmissing = []
 
         print("Checking for missing files...")
-        with open(outfile, "w") as f:
-            for i in tqdm(range(len(self.pathList))):
-                fToCheck = os.path.join(self.pathList[i][1], os.path.basename(self.pathList[i][0]))
-                #TODO
-                #store result of check in object in addition to dump to text file to be able to download them again
-                if not os.path.isfile(fToCheck):
-                    f.write(self.pathList[i][0] + "\n")
-                    fmissing.append(self.pathList[i][0])
+        try:
+            with open(outfile, "w") as f:
+                for i in tqdm(range(len(self.pathList))):
+                    fToCheck = os.path.join(self.pathList[i][1], os.path.basename(self.pathList[i][0]))
+                    #TODO
+                    #store result of check in object in addition to dump to text file to be able to download them again
+                    if not os.path.isfile(fToCheck):
+                        f.write(self.pathList[i][0] + "\n")
+                        fmissing.append(self.pathList[i][0])
+        except IOerror as e:
+            print("Not outputfile given.")
 
         if len(fmissing) >= 1:
             print("There are {0} files missing".format(len(fmissing)))
