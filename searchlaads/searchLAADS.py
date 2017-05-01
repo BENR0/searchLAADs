@@ -163,7 +163,7 @@ class searchLAADS(object):
 
         north, south, west, east = self.bbox
         #hard coded maxRetries for fettching data from SOAP service
-        maxRetries
+        maxRetries = 5
 
         #split time window in chunks
         tchunks = self.timeChunks()
