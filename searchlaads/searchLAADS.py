@@ -162,9 +162,12 @@ class searchLAADS(object):
         """
 
         north, south, west, east = self.bbox
-        fileURLs = []
+        #hard coded maxRetries for fettching data from SOAP service
+        maxRetries
 
+        #split time window in chunks
         tchunks = self.timeChunks()
+
 	logger.debug("Number of time chunks: {0}".format(len(tchunks)))
         if len(tchunks) > 1:
             logger.debug("It seems your are trying to search for many files. This may take a while...")
@@ -178,17 +181,33 @@ class searchLAADS(object):
             starttime = tchunks[i][0].strftime("%Y-%m-%d %H:%M")
             endtime = tchunks[i][1].strftime("%Y-%m-%d %H:%M")
 	    
-	    logger.debug("Current chunk: {0}".format((starttime,endtime)))
+            logger.debug("Getting file IDs for chunk {0} of {1}: {2}".format(i,len(tchunks),(starttime,endtime)))
 
-            IDs = self.server.searchForFiles(products=self.product, collection=self.collection, startTime=starttime, endTime=endtime,
-                    north=north, south=south, east=east, west=west, coordsOrTiles=self.cot,
-                    dayNightBoth=self.dnb)
+            IDattempts = 0
+            while IDattempts < maxRetries:
+                try:
+                    IDs = self.server.searchForFiles(products=self.product, collection=self.collection, startTime=starttime, endTime=endtime,
+                            north=north, south=south, east=east, west=west, coordsOrTiles=self.cot,
+                            dayNightBoth=self.dnb)
+                except Exception, e:
+                    logger.error(e)
+                    logger.error("Failed to retrieve file IDs for chunk {0}: {1}".format(i, (starttime,endtime)))
+                    pass
 
             IDsFilestring = ",".join(IDs)
-            URLs = self.server.getFileUrls(fileIds=IDsFilestring)
+
+            logger.debug("Getting file URLs for chunk {0} of {1}: {2}".format(i,len(tchunks),(starttime,endtime)))
+
+            URLattempts = 0
+            while URLattempts < maxRetries:
+                try:
+                    URLs = self.server.getFileUrls(fileIds=IDsFilestring)
+                except Exception, e:
+                    logger.error(e)
+                    logger.error("Failed to retrieve file URLs for chunk {0}: {1}".format(i, (starttime,endtime)))
+                    pass
 
             self.fileURLs += URLs
-
 
         pass
 
@@ -250,14 +269,14 @@ class searchLAADS(object):
         pass
 
         
-    def downloadFiles(self, directory, maxRetrys = 5, multiproc = False, numproc = 3):
+    def downloadFiles(self, directory, maxRetries = 5, multiproc = False, numproc = 3):
         """Download URLs.
 
         Parameters
         ----------
         directory: str
             Base directory where to save files
-        maxRetrys: int
+        maxRetries: int
             Maximum number of retrys to open the url
         multiproc: boolean
             Download multiple files at the same time.
@@ -284,7 +303,7 @@ class searchLAADS(object):
 
 
             attempts = 0
-            while attempts < maxRetrys:
+            while attempts < maxRetries:
                 try:
                     response = urllib2.urlopen(url)
                     attempts += 1
