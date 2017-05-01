@@ -5,7 +5,7 @@ logging.basicConfig(level = logging.DEBUG,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                     datefmt='%m-%d %H:%M',
                     filename='debug.log',
-                    filemode='w')
+                    filemode='a')
 
 # #define handler which write info messages to screen
 # console = logging.StreamHandler()
@@ -24,10 +24,15 @@ logger = logging.getLogger(__name__)
 # server.config.dumpSOAPOut = 1
 # server.config.dumpSOAPIn = 1
 
-#start and end times as datetime obj
+#MOD35_L2 available between
+#officially available from 200002240000
+starttime = "200003010000"
 endtime = "201704270000"
-starttime = "201704260000"
 
+#MYD35_L2 available between
+#officially available from 200207040000"
+#starttime = "200208010000
+#endtime = "201704270000"
 
 product = "MOD35_L2"
 collection = 6
@@ -44,6 +49,6 @@ mod35 = searchLAADS(product, collection, starttime, endtime, bbox, coordsOrTiles
 
 mod35.searchFiles()
 
-# mod35.dumpURLs("urls.txt", replace = True)
-mod35.downloadFiles("data/", True)
+mod35.dumpURLs("urls.txt", replace = True)
+# mod35.downloadFiles("data/", True)
 
