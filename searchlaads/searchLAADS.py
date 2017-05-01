@@ -189,6 +189,7 @@ class searchLAADS(object):
                     IDs = self.server.searchForFiles(products=self.product, collection=self.collection, startTime=starttime, endTime=endtime,
                             north=north, south=south, east=east, west=west, coordsOrTiles=self.cot,
                             dayNightBoth=self.dnb)
+                    IDattempts += 1
                 except Exception, e:
                     logger.error(e)
                     logger.error("Failed to retrieve file IDs for chunk {0}: {1}".format(i, (starttime,endtime)))
@@ -202,6 +203,7 @@ class searchLAADS(object):
             while URLattempts < maxRetries:
                 try:
                     URLs = self.server.getFileUrls(fileIds=IDsFilestring)
+                    URLattempts += 1
                 except Exception, e:
                     logger.error(e)
                     logger.error("Failed to retrieve file URLs for chunk {0}: {1}".format(i, (starttime,endtime)))
