@@ -190,10 +190,11 @@ class searchLAADS(object):
                     IDs = self.server.searchForFiles(products=self.product, collection=self.collection, startTime=starttime, endTime=endtime,
                             north=north, south=south, east=east, west=west, coordsOrTiles=self.cot,
                             dayNightBoth=self.dnb)
-                    IDattempts += 1
+                    break
                 except Exception, e:
                     logger.error(e)
                     logger.error("Failed to retrieve file IDs for chunk {0}: {1}".format(i, (starttime,endtime)))
+                    IDattempts += 1
                     pass
 
             IDsFilestring = ",".join(IDs)
@@ -204,10 +205,11 @@ class searchLAADS(object):
             while URLattempts < maxRetries:
                 try:
                     URLs = self.server.getFileUrls(fileIds=IDsFilestring)
-                    URLattempts += 1
+                    break
                 except Exception, e:
                     logger.error(e)
                     logger.error("Failed to retrieve file URLs for chunk {0}: {1}".format(i, (starttime,endtime)))
+                    URLattempts += 1
                     pass
 
             self.fileURLs += URLs
@@ -312,10 +314,11 @@ class searchLAADS(object):
             while attempts < maxRetries:
                 try:
                     response = urllib2.urlopen(url)
-                    attempts += 1
+                    break
                 except urllib2.URLError as e:
                     logger.debug(e)
                     logger.debug("File {0} failed to download with the above error".format(url))
+                    attempts += 1
                     pass
 
             with open(fpath, "wb") as f:
@@ -400,7 +403,7 @@ class searchLAADS(object):
         pass
 
     
-    def checkMissincheckMissing(self, directory = None, outfile = None):
+    def checkMissing(self, directory = None, outfile = None):
         """Check for missing files in time window.
         For example if file did not get downloaded correctly
         or was skipped due to server errors.
@@ -420,13 +423,14 @@ class searchLAADS(object):
         ###############
         #MOVE THIS FUNCTION TO A COMMON PLACE, THEN REMOVE FROM HERE AND FROM DOWNLOAD FUNCTION
         ##############
+        directory = self.targetDir
+
         def pathTuple(url, directory = directory):
             secfield = os.path.basename(url).split(".")[1]
             year = secfield[1:5]
             outdir = os.path.join(directory, year)
             return((url, outdir))
 
-        directory = self.targetDir
 
         #TODO
         #make it possible to instantiate object/ read in list of urls and directory with files
@@ -456,7 +460,7 @@ class searchLAADS(object):
                     if not os.path.isfile(fToCheck):
                         f.write(self.pathList[i][0] + "\n")
                         fmissing.append(self.pathList[i][0])
-        except IOerror as e:
+        except IOError as e:
             print("Not outputfile given.")
 
         if len(fmissing) >= 1:
