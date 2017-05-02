@@ -128,20 +128,76 @@ class searchLAADS(object):
         return chunkList
 
 
-    def list_prods(self):
+    def getListOf(self, get = None, args = None):
         """Get a list of available products
+
+        Parameters
+        ----------
+        get: str
+            Keyword for what to get a list of
+        args: str
+            Additional arguments needed e.g. instrument for ProdsByInstrument
 
         Return
         ------
-        list: List of product names
+        list: list of results
 
         """
+        keywords = {"instruments": "listSatelliteInstruments", "products": "listProducts",
+                "prodsByInstrument": "listProductsByInstrument", "groups": "listProductGroups"}
 
-        prods = self.server.listProducts()
+        #define array with results from instruments as workaround because SOAP
+        #call to listSatelliteInstruments is not working
+        results = [("AM1M","Terra MODIS"), ("ANC","Ancillary Data"), ("PM1M","Aqua MODIS"),
+                ("AMPM","Combined Aqua & Terra MODIS"), ("NPP","Suomi NPP VIIRS")]
 
-        prodList = [prod["Name"] for prod in prods]
+        try:
+            if get is None:
+                raise TypeError
+            else:
+                if (get == "prodsByInstrument") or (get == "groups"):
+                    try:
+                        if args is None:
+                            raise TypeError
+                        else:
+                            toCall = getattr(self.server, keywords[get])#(instrument = args)
+                            answer = toCall(instrument = args)
+                    except TypeError:
+                        print("No instrument given.")
+                        print("Possible values for instrument are:")
+                        # print(getattr(self.server, "getListOf")(get = keywords["instruments"]))
+                        # print(self.server.listSatelliteInstruments)
+                        for i in results:
+                            print("{:18} {}".format(i[0], i[1]))
+                elif get == "products":
+                    toCall = getattr(self.server, keywords[get])
+                    answer = toCall()
+
+            
+            if get == "products":
+                results = [(item["Name"], item["Description"]) for item in answer]
+            # elif (get == "instruments") or (get == "groups"):
+            elif get == "groups":
+                results = [(item["name"], item["value"]) for item in answer]
+            elif get == "prodsByInstrument":
+                results = [(item, "") for item in answer]
+
+            #print results to screen
+            print("Available {0}:".format(get))
+            for i in results:
+                print("{:18} {}".format(i[0], i[1]))
+            
+
+            return results
+
+        except TypeError:
+            print("Nothing specified to list.")
+            print("Possible values for get are:")
+            for key in keywords.keys():
+                print(key)
+
+        pass
         
-        return prodList
 
 
     def searchFiles(self):
