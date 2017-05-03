@@ -334,6 +334,11 @@ class searchLAADS(object):
     def downloadFiles(self, directory = None, maxRetries = 5, multiproc = False, numproc = 3):
         """Download URLs.
 
+        TODO
+        ----
+        - overwrite parameter: to be able to skip or overwrite existing files
+        - write urls of failed downloads to file?
+
         Parameters
         ----------
         directory: str
@@ -424,15 +429,23 @@ class searchLAADS(object):
         pass
 
 
-    def checkFiles(self):
+    def checkFiles(self, directory = None, outfile = None):
         """Check files if they were downloaded correctly
+
+        TODO
+        ----
+        - Combine this and the following function since most of the code is the same
 
         Parameters
         ----------
+        directory: str
+            Basedirectory were downloaded files are stored
+        outfile: str
+            File to save results to.
 
         Return
         ------
-        return: 0 if file is correct, 1 for error
+        return: File with URLs of broken files
         """
 
         def check(fpath):
@@ -444,17 +457,43 @@ class searchLAADS(object):
                 return 1 
 
         print("Checking files...")
-        if len(self.pathList) >= 1:
-            for i in tqdm(range(len(self.pathList))):
-                fToCheck = os.path.join(self.pathList[i][1], os.path.basename(self.pathList[i][0]))
-                #TODO
-                #store result of check somewhere and print result at the end
-                check(fToCheck)
+
+        directory = self.targetDir
+
+        #TODO
+        #make it possible to instantiate object/ read in list of urls and directory with files
+        #to check
+        if len(self.fileURLs) >= 1:
+            try:
+                if directory is not None:
+                    self.pathList = list(map(pathTuple, self.fileURLs))
+                else:
+                    raise TypeError
+            except TypeError:
+                print("""No target directory were to store files given. Instantiate search obejct with
+                        directory or set the directory parameter of downloadFiles.""")
         else:
-            #TODO
-            #make it possible to instantiate object/ read in list of urls and directory with files
-            #to check
-            print("File list is empty. Search and download files first.")
+            print("Search for files first.")
+
+        #list for urls of missing files
+        fmissing = []
+
+        print("Checking for missing files...")
+        try:
+            with open(outfile, "w") as f:
+                for i in tqdm(range(len(self.pathList))):
+                    fToCheck = os.path.join(self.pathList[i][1], os.path.basename(self.pathList[i][0]))
+                    #TODO
+                    #store result of check in object in addition to dump to text file to be able to download them again
+                    resCheck = check(fToCheck)
+                    if resCheck == 1:
+                        f.write(self.pathList[i][0] + "\n")
+                        fmissing.append(self.pathList[i][0])
+        except IOerror as e:
+            print("Not outputfile given.")
+
+        if len(fmissing) >= 1:
+            print("There are {0} files missing".format(len(fmissing)))
 
         pass
 
