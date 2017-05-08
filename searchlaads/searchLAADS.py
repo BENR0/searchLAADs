@@ -5,7 +5,7 @@ import math
 import urllib2
 import re
 import logging
-#import gdal
+import gdal
 from tqdm import tqdm
 from SOAPpy import WSDL
 from SOAPpy import SOAPProxy
@@ -464,6 +464,13 @@ class searchLAADS(object):
 
         directory = self.targetDir
 
+        def pathTuple(url, directory = directory):
+            secfield = os.path.basename(url).split(".")[1]
+            year = secfield[1:5]
+            outdir = os.path.join(directory, year)
+            return((url, outdir))
+
+
         #TODO
         #make it possible to instantiate object/ read in list of urls and directory with files
         #to check
@@ -493,7 +500,7 @@ class searchLAADS(object):
                     if resCheck == 1:
                         f.write(self.pathList[i][0] + "\n")
                         fmissing.append(self.pathList[i][0])
-        except IOerror as e:
+        except IOError as e:
             print("Not outputfile given.")
 
         if len(fmissing) >= 1:
