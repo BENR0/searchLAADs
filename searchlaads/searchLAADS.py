@@ -379,6 +379,10 @@ class searchLAADS(object):
                 except urllib2.URLError as e:
                     logger.debug(e)
                     logger.debug("File {0} failed to download with the above error".format(url))
+                    if attempts == maxRetries -1:
+                        with open("download_failed.txt", "w") as f:
+                            f.write(url + "\n")
+
                     attempts += 1
                     pass
 
