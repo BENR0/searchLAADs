@@ -200,11 +200,16 @@ class searchLAADS(object):
         
 
 
-    def searchFiles(self):
+    def searchFiles(self, getGeoLoc = False, maxRetries = 5):
         """Search LAADS web for files.
         Possible values of most parameters are listed in the LAADS web SOAP API
         documenation at:
         https://ladsweb.modaps.eosdis.nasa.gov/tools-and-services/lws-classic/api.php#searchForFiles
+
+        Parameters
+        ----------
+        getGeoLoc: boolean
+            Also search for corresponding geolocation files.
 
         Return
         ------
@@ -219,8 +224,13 @@ class searchLAADS(object):
         """
 
         north, south, west, east = self.bbox
-        #hard coded maxRetries for fettching data from SOAP service
-        maxRetries = 5
+
+        #search string for geoloaction
+        #if getGeoLoc:
+            #if self.product == "MOD":
+                #self.product = ",".join([self.product, "MOD03"])
+            #else:
+                #self.product = ",".join([self.product, "MYD03"])
 
         #split time window in chunks
         tchunks = self.timeChunks()
