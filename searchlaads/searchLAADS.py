@@ -375,6 +375,9 @@ class searchLAADS(object):
             while attempts < maxRetries:
                 try:
                     response = urllib2.urlopen(url)
+		    with open(fpath, "wb") as f:
+			f.write(response.read())
+
                     break
                 except urllib2.URLError as e:
                     logger.debug(e)
@@ -386,12 +389,8 @@ class searchLAADS(object):
                     attempts += 1
                     pass
 
-            with open(fpath, "wb") as f:
-                f.write(response.read())
-
             #update progressbar
             pbar.update(1)
-
 
             return
 
