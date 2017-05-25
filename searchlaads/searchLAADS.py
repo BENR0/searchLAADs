@@ -382,22 +382,23 @@ class searchLAADS(object):
 
 
             attempts = 0
-            while attempts < maxRetries:
-                try:
-                    response = urllib2.urlopen(url)
-		    with open(fpath, "wb") as f:
-			f.write(response.read())
+	    if not os.path.isfile(fpath):
+                while attempts < maxRetries:
+                    try:
+                        response = urllib2.urlopen(url)
+		        with open(fpath, "wb") as f:
+		 	    f.write(response.read())
 
-                    break
-                except urllib2.URLError as e:
-                    logger.debug(e)
-                    logger.debug("File {0} failed to download with the above error".format(url))
-                    if attempts == maxRetries -1:
-                        with open("download_failed.txt", "w") as f:
-                            f.write(url + "\n")
+                        break
+                    except urllib2.URLError as e:
+                        logger.debug(e)
+                        logger.debug("File {0} failed to download with the above error".format(url))
+                        if attempts == maxRetries -1:
+                            with open("download_failed.txt", "w") as f:
+                                f.write(url + "\n")
 
-                    attempts += 1
-                    pass
+                        attempts += 1
+                        pass
 
             #update progressbar
             pbar.update(1)
