@@ -238,11 +238,11 @@ class searchLAADS(object):
 	logger.debug("Number of time chunks: {0}".format(len(tchunks)))
         if len(tchunks) > 1:
             msg = "It seems your are trying to search for many files. This may take a while..."
-            logger.debug(msg)
+            logger.info(msg)
             print(msg)
         else:
             msg = "Searching for files..."
-            logger.debug(msg)
+            logger.info(msg)
             print(msg)
 
 
@@ -415,7 +415,7 @@ class searchLAADS(object):
                 os.makedirs(d)
 
         msg = "Starting download of files...")
-        logger.debug(msg)
+        logger.info(msg)
         print(msg)
 
         pbar = tqdm(total = len(self.pathList))
