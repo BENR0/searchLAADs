@@ -239,11 +239,9 @@ class searchLAADS(object):
         if len(tchunks) > 1:
             msg = "It seems your are trying to search for many files. This may take a while..."
             logger.info(msg)
-            print(msg)
         else:
             msg = "Searching for files..."
             logger.info(msg)
-            print(msg)
 
 
         for i in tqdm(range(len(tchunks))):
@@ -297,7 +295,7 @@ class searchLAADS(object):
         ------
         """
 
-        logger.debug("Dumping file URLs to text file")
+        logger.info("Dumping file URLs to text file")
 
         if len(self.fileURLs) < 1:
             msg = "There are no URLs to write. Please retrive file URLs by using the \"searchFiles\" function first."
@@ -414,9 +412,9 @@ class searchLAADS(object):
             if not os.path.exists(d):
                 os.makedirs(d)
 
-        msg = "Starting download of files...")
+        msg = "Starting download of files..."
         logger.info(msg)
-        print(msg)
+        #print(msg)
 
         pbar = tqdm(total = len(self.pathList))
 
