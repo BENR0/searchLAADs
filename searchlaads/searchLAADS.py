@@ -237,11 +237,13 @@ class searchLAADS(object):
 
 	logger.debug("Number of time chunks: {0}".format(len(tchunks)))
         if len(tchunks) > 1:
-            logger.debug("It seems your are trying to search for many files. This may take a while...")
-            print("It seems your are trying to search for many files. This may take a while...")
+            msg = "It seems your are trying to search for many files. This may take a while..."
+            logger.debug(msg)
+            print(msg)
         else:
-            logger.debug("Searching for files...")
-            print("Searching for files...")
+            msg = "Searching for files..."
+            logger.debug(msg)
+            print(msg)
 
 
         for i in tqdm(range(len(tchunks))):
@@ -298,13 +300,15 @@ class searchLAADS(object):
         logger.debug("Dumping file URLs to text file")
 
         if len(self.fileURLs) < 1:
-            logger.debug("There are no URLs to write. Please retrive file URLs by using the \"searchFiles\" function first.")
-            print("There are no URLs to write. Please retrive file URLs by using the \"searchFiles\" function first.")
+            msg = "There are no URLs to write. Please retrive file URLs by using the \"searchFiles\" function first."
+            logger.debug(msg)
+            print(msg)
         else:
             #check if file exists
             if os.path.isfile(fname) & (not replace):
-                logger.debug("The file already exists. Please choose another name or set the \"replace\" parameter to True.")
-                print("The file already exists. Please choose another name or set the \"replace\" parameter to True.")
+                msg = "The file already exists. Please choose another name or set the \"replace\" parameter to True."
+                logger.debug(msg)
+                print(msg)
             else:
                 with open(fname, "w") as f:
                     for i in self.fileURLs:
@@ -410,8 +414,9 @@ class searchLAADS(object):
             if not os.path.exists(d):
                 os.makedirs(d)
 
-        logger.debug("Starting download of files...")
-        print("Starting download of files...")
+        msg = "Starting download of files...")
+        logger.debug(msg)
+        print(msg)
 
         pbar = tqdm(total = len(self.pathList))
 
