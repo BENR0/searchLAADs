@@ -534,6 +534,8 @@ class searchLAADS(object):
 
         pass
 
-
+    
+    def estimateHDDspaceNeeded(self):
+        pass
 
 # if __name__ == "__main__":
