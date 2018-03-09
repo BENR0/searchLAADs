@@ -556,9 +556,10 @@ class searchLAADS(object):
         -------
         float
         """
+        print("Estimating needed HDD space")
         size = 0
 
-        fids = random.sample(len(self.fileURLs), nsamples)
+        fids = random.sample(range(len(self.fileURLs)), nsamples)
         sampledURLs = [self.fileURLs[i] for i in fids]
 
         for url in sampledURLs:
@@ -569,7 +570,7 @@ class searchLAADS(object):
             size += float(csize)
 
         #convert file size to Mb and calculate mean
-        size = float(size)/1024.0/1024.0/nsamples
+        size = float(size)/1024.0/1024.0/nsamples*len(self.fileURLs)
         return size
 
 # if __name__ == "__main__":
