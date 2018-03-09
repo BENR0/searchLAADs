@@ -5,6 +5,7 @@ import math
 import urllib2
 import re
 import logging
+import random
 #import gdal
 from tqdm import tqdm
 from SOAPpy import WSDL
@@ -15,6 +16,13 @@ from multiprocessing.dummy import Pool # use threads
 
 logger = logging.getLogger(__name__)
 
+#websites with more information about modis products
+#land products overview (filenames etc.):
+#https://lpdaac.usgs.gov/dataset_discovery/modis
+#land products table:
+#https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table
+#atmosphere and cloud products overview
+#https://modis-atmos.gsfc.nasa.gov/products
 
 class searchLAADS(object):
 
@@ -535,7 +543,33 @@ class searchLAADS(object):
         pass
 
     
-    def estimateHDDspaceNeeded(self):
-        pass
+    def estimateHDDspace(self, nsamples = 20):
+        """Estimate disk space needed to download all files
+        found in search.
+
+        Parameters
+        ----------
+        nsamples: integer
+            number of samples to consider for estimating needed space, default 20
+
+        Returns
+        -------
+        float
+        """
+        size = 0
+
+        fids = random.sample(len(self.fileURLs), nsamples)
+        sampledURLs = [self.fileURLs[i] for i in fids]
+
+        for url in sampledURLs:
+            response = urllib2.urlopen(url)
+            csize = response.info().get("Content-Length")
+            if csize is None:
+                csize = 0
+            size += float(csize)
+
+        #convert file size to Mb and calculate mean
+        size = float(size)/1024.0/1024.0/nsamples
+        return size
 
 # if __name__ == "__main__":
