@@ -12,7 +12,7 @@ config = {
     'version': '0.2',
     'install_requires': ['nose', 'SOAPpy', 'tqdm'],
     'packages': ['searchlaads'],
-    'scripts': ['scripts/mod35_l2.py'],
+    'scripts': ['scripts/mod35_l2_example.py'],
     'name': 'searchLAADS'
 }
 
