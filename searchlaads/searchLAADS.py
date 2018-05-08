@@ -349,7 +349,7 @@ class searchLAADS(object):
         pass
 
         
-    def downloadFiles(self, directory = None, maxRetries = 5, multiproc = False, numproc = 3):
+    def downloadFiles(self, directory = None, maxRetries = 5, multiproc = False, numproc = 3, overwrite = False):
         """Download URLs.
 
         Parameters
@@ -362,6 +362,8 @@ class searchLAADS(object):
             Download multiple files at the same time.
         numproc: int optional
             Number of processes if multiproc is set to True
+        overwrite: boolean
+            Should existing files be overwritten?
 
         
         Return
@@ -384,18 +386,21 @@ class searchLAADS(object):
             fpath = os.path.join(directory, fname)
 
 
-            attempts = 0
-            while attempts < maxRetries:
-                try:
-                    response = urllib2.urlopen(url)
-                    attempts += 1
-                except urllib2.URLError as e:
-                    logger.debug(e)
-                    logger.debug("File {0} failed to download with the above error".format(url))
-                    pass
+            if not os.path.isfile(fpath) or overwrite:
+                attempts = 0
+                while attempts < maxRetries:
+                    try:
+                        response = urllib2.urlopen(url)
+                        attempts += 1
+                    except urllib2.URLError as e:
+                        logger.debug(e)
+                        logger.debug("File {0} failed to download with the above error".format(url))
+                        pass
 
-            with open(fpath, "wb") as f:
-                f.write(response.read())
+                with open(fpath, "wb") as f:
+                    f.write(response.read())
+            else:
+                pass
 
             #update progressbar
             pbar.update(1)
