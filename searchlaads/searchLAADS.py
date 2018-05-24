@@ -38,11 +38,16 @@ class searchLAADS(object):
     #to avoid server 502 error
     LAADSmaxFiles = 1000
 
-    def __init__(self, product, collection, stime, etime, bbox, coordsOrTiles, dayNightBoth, targetDir = None):
+    def __init__(self, product, collection, stime, etime, bbox, coordsOrTiles = "coords", dayNightBoth = "DNB", targetDir = None):
+        #TODO
+        #add checks for init variables
+        #add defaults for missing values
+        #errors for required values
         self.product = product
         self.collection = collection
         self.stime = datetime.strptime(stime, "%Y%m%d%H%M")
         self.etime = datetime.strptime(etime, "%Y%m%d%H%M")
+        #north, south, west, east = bbox
         self.bbox = bbox
         self.cot = coordsOrTiles
         self.dnb = dayNightBoth
@@ -255,8 +260,8 @@ class searchLAADS(object):
 
 
         for i in tqdm(range(len(tchunks))):
-            starttime = tchunks[i][0].strftime("%Y-%m-%d %H:%M")
-            endtime = tchunks[i][1].strftime("%Y-%m-%d %H:%M")
+            starttime = tchunks[i][0].strftime("%Y-%m-%d %H:%M:%S")
+            endtime = tchunks[i][1].strftime("%Y-%m-%d %H:%M:%S")
 	    
             logger.debug("Getting file IDs for chunk {0} of {1}: {2}".format(i,len(tchunks),(starttime,endtime)))
 
