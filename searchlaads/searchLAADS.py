@@ -16,6 +16,8 @@ from multiprocessing.dummy import Pool # use threads
 
 logger = logging.getLogger(__name__)
 
+#web service function description
+#https://ladsweb.modaps.eosdis.nasa.gov/tools-and-services/lws-classic/api.php
 #websites with more information about modis products
 #land products overview (filenames etc.):
 #https://lpdaac.usgs.gov/dataset_discovery/modis
