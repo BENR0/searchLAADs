@@ -508,7 +508,7 @@ class searchLAADS(object):
                 #store result of check somewhere and print result at the end
                 broken = check(fToCheck)
                 if not broken == 0:
-                    self.brokenFiles.append(check(fToCheck))
+                    self.brokenFiles.append(broken)
         else:
             #TODO
             #make it possible to instantiate object/ read in list of urls and directory with files
