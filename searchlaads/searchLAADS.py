@@ -485,12 +485,26 @@ class searchLAADS(object):
                 logger.error(e)
                 return fpath 
 
+        if len(self.fileURLs) >= 1:
+            try:
+                if directory is not None:
+                    self.pathList = list(map(pathTuple, self.fileURLs))
+                else:
+                    raise TypeError
+            except TypeError:
+                print("""No target directory were to store files given. Instantiate search obejct with
+                        directory or set the directory parameter of downloadFiles.""")
+        else:
+            print("Search for files first.")
+
+
         self.brokenFiles = []
         print("Checking files...")
         if len(self.fileURLs) >= 1:
-            for i in tqdm(range(len(self.fileURLs))):
-                #fToCheck = os.path.join(self.pathList[i][1], os.path.basename(self.pathList[i][0]))
-                fToCheck = pathTuple(self.fileURLs[i])
+            for i in tqdm(range(len(self.pathList))):
+                fToCheck = os.path.join(self.pathList[i][1], os.path.basename(self.pathList[i][0]))
+                #fToCheck = pathTuple(self.fileURLs[i])
+                print(fToCheck)
                 #TODO
                 #store result of check somewhere and print result at the end
                 broken = check(fToCheck)
