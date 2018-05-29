@@ -6,7 +6,7 @@ import urllib2
 import re
 import logging
 import random
-#import gdal
+import gdal
 from tqdm import tqdm
 from SOAPpy import WSDL
 from SOAPpy import SOAPProxy
@@ -465,21 +465,37 @@ class searchLAADS(object):
         return: 0 if file is correct, 1 for error
         """
 
+        directory = self.targetDir
+
+        ###############
+        #MOVE THIS FUNCTION TO A COMMON PLACE, THEN REMOVE FROM HERE AND FROM DOWNLOAD FUNCTION
+        ##############
+        def pathTuple(url, directory = directory):
+            secfield = os.path.basename(url).split(".")[1]
+            year = secfield[1:5]
+            outdir = os.path.join(directory, year)
+            return((url, outdir))
+
+
         def check(fpath):
             try:
                 gdal.Open(fpath)
                 return 0
             except (RuntimeError) as e:
                 logger.error(e)
-                return 1 
+                return fpath 
 
+        self.brokenFiles = []
         print("Checking files...")
-        if len(self.pathList) >= 1:
-            for i in tqdm(range(len(self.pathList))):
-                fToCheck = os.path.join(self.pathList[i][1], os.path.basename(self.pathList[i][0]))
+        if len(self.fileURLs) >= 1:
+            for i in tqdm(range(len(self.fileURLs))):
+                #fToCheck = os.path.join(self.pathList[i][1], os.path.basename(self.pathList[i][0]))
+                fToCheck = pathTuple(self.fileURLs[i])
                 #TODO
                 #store result of check somewhere and print result at the end
-                check(fToCheck)
+                broken = check(fToCheck)
+                if not broken == 0:
+                    self.brokenFiles.append(check(fToCheck))
         else:
             #TODO
             #make it possible to instantiate object/ read in list of urls and directory with files
@@ -489,7 +505,7 @@ class searchLAADS(object):
         pass
 
     
-    def checkMissincheckMissing(self, directory = None, outfile = None):
+    def checkMissing(self, directory = None, outfile = None):
         """Check for missing files in time window.
         For example if file did not get downloaded correctly
         or was skipped due to server errors.
@@ -506,6 +522,9 @@ class searchLAADS(object):
         Text file with missing file URLs
         """
 
+
+        directory = self.targetDir
+
         ###############
         #MOVE THIS FUNCTION TO A COMMON PLACE, THEN REMOVE FROM HERE AND FROM DOWNLOAD FUNCTION
         ##############
@@ -514,8 +533,6 @@ class searchLAADS(object):
             year = secfield[1:5]
             outdir = os.path.join(directory, year)
             return((url, outdir))
-
-        directory = self.targetDir
 
         #TODO
         #make it possible to instantiate object/ read in list of urls and directory with files
