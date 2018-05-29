@@ -504,7 +504,6 @@ class searchLAADS(object):
             for i in tqdm(range(len(self.pathList))):
                 fToCheck = os.path.join(self.pathList[i][1], os.path.basename(self.pathList[i][0]))
                 #fToCheck = pathTuple(self.fileURLs[i])
-                print(fToCheck)
                 #TODO
                 #store result of check somewhere and print result at the end
                 broken = check(fToCheck)
