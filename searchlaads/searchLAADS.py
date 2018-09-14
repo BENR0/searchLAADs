@@ -617,7 +617,7 @@ class searchLAADS(object):
 
         #convert file size to Mb and calculate mean
         size = float(size)/1024.0/1024.0/nsamples*len(self.fileURLs)
-        print("The download of the files for the selected time intervall and domain approximately needs {space:s} Mb of hard disk space".format(size))
+        print("The download of the files for the selected time intervall and domain approximately needs {space:d} Mb of hard disk space".format(space = int(size)))
 
         return size
 
