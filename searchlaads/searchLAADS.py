@@ -57,7 +57,7 @@ class searchLAADS(object):
         self.pathList = []
 
 
-    def numTilesForBbox(self):
+    def _numTilesForBbox(self):
         """Calculates the approximate number of tiles which cover the given extent
 
         Returns
@@ -73,7 +73,7 @@ class searchLAADS(object):
         return math.ceil(abs(numlat))*2 * math.ceil(abs(numlon))*2
 
 
-    def estimNumFiles(self):
+    def _estimNumFiles(self):
         """Estimates the number of files that need to be downloaded
         to cover the given extent for the specified time intervall.
         
@@ -85,7 +85,7 @@ class searchLAADS(object):
 
         See Also
         --------
-        numTilesForBbox: number of tiles for bounding box
+        _numTilesForBbox: number of tiles for bounding box
 
         """
         #calculate time difference between stime and etime in hours
@@ -96,12 +96,12 @@ class searchLAADS(object):
 
         deltaHours = (self.etime - self.stime).total_seconds() / 3600
         numDaysNights = deltaHours / 12
-        numFiles = numDaysNights * self.numTilesForBbox()
+        numFiles = numDaysNights * self._numTilesForBbox()
 
         return numFiles
 
 
-    def timeChunks(self):
+    def _timeChunks(self):
         """Splits the time intervall between starttime and endtime into chunks.
         The number of files returned by the "searchFiles" function is below the
         6000 limit for each time chunk.
@@ -119,7 +119,7 @@ class searchLAADS(object):
         """
 
         #calculate number of chunks necessary
-        numChunks = self.estimNumFiles() / self.LAADSmaxFiles
+        numChunks = self._estimNumFiles() / self.LAADSmaxFiles
 
         #calculate time window for each chunk in hours
         deltaHours = (self.etime - self.stime).total_seconds() / 3600
@@ -248,7 +248,7 @@ class searchLAADS(object):
                 #self.product = ",".join([self.product, "MYD03"])
 
         #split time window in chunks
-        tchunks = self.timeChunks()
+        tchunks = self._timeChunks()
 
 	logger.debug("Number of time chunks: {0}".format(len(tchunks)))
         if len(tchunks) > 1:
@@ -463,6 +463,10 @@ class searchLAADS(object):
         Return
         ------
         return: 0 if file is correct, 1 for error
+
+        Notes
+        -----
+        Needs gdal installed
         """
 
         directory = self.targetDir
@@ -560,7 +564,7 @@ class searchLAADS(object):
                 print("""No target directory were to store files given. Instantiate search obejct with
                         directory or set the directory parameter of downloadFiles.""")
         else:
-            print("Search for files first.")
+            print("Search for files or read in URLs from file first ")
 
         #list for urls of missing files
         fmissing = []
@@ -598,7 +602,7 @@ class searchLAADS(object):
         -------
         float
         """
-        print("Estimating needed HDD space")
+        print("Estimating needed HDD space. This may take a couple of seconds.")
         size = 0
 
         fids = random.sample(range(len(self.fileURLs)), nsamples)
@@ -613,6 +617,8 @@ class searchLAADS(object):
 
         #convert file size to Mb and calculate mean
         size = float(size)/1024.0/1024.0/nsamples*len(self.fileURLs)
+        print("The download of the files for the selected time intervall and domain approximately needs {space:s} of hard disk space".format(size))
+
         return size
 
 # if __name__ == "__main__":
