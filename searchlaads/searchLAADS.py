@@ -5,6 +5,7 @@ import math
 import urllib2
 import re
 import logging
+import random
 import gdal
 from tqdm import tqdm
 from SOAPpy import WSDL
@@ -15,6 +16,15 @@ from multiprocessing.dummy import Pool # use threads
 
 logger = logging.getLogger(__name__)
 
+#web service function description
+#https://ladsweb.modaps.eosdis.nasa.gov/tools-and-services/lws-classic/api.php
+#websites with more information about modis products
+#land products overview (filenames etc.):
+#https://lpdaac.usgs.gov/dataset_discovery/modis
+#land products table:
+#https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table
+#atmosphere and cloud products overview
+#https://modis-atmos.gsfc.nasa.gov/products
 
 class searchLAADS(object):
 
@@ -28,11 +38,16 @@ class searchLAADS(object):
     #to avoid server 502 error
     LAADSmaxFiles = 1000
 
-    def __init__(self, product, collection, stime, etime, bbox, coordsOrTiles, dayNightBoth, targetDir = None):
+    def __init__(self, product, collection, stime, etime, bbox, coordsOrTiles = "coords", dayNightBoth = "DNB", targetDir = None):
+        #TODO
+        #add checks for init variables
+        #add defaults for missing values
+        #errors for required values
         self.product = product
         self.collection = collection
         self.stime = datetime.strptime(stime, "%Y%m%d%H%M")
         self.etime = datetime.strptime(etime, "%Y%m%d%H%M")
+        #north, south, west, east = bbox
         self.bbox = bbox
         self.cot = coordsOrTiles
         self.dnb = dayNightBoth
@@ -42,7 +57,7 @@ class searchLAADS(object):
         self.pathList = []
 
 
-    def numTilesForBbox(self):
+    def _numTilesForBbox(self):
         """Calculates the approximate number of tiles which cover the given extent
 
         Returns
@@ -58,7 +73,7 @@ class searchLAADS(object):
         return math.ceil(abs(numlat))*2 * math.ceil(abs(numlon))*2
 
 
-    def estimNumFiles(self):
+    def _estimNumFiles(self):
         """Estimates the number of files that need to be downloaded
         to cover the given extent for the specified time intervall.
         
@@ -70,7 +85,7 @@ class searchLAADS(object):
 
         See Also
         --------
-        numTilesForBbox: number of tiles for bounding box
+        _numTilesForBbox: number of tiles for bounding box
 
         """
         #calculate time difference between stime and etime in hours
@@ -81,12 +96,12 @@ class searchLAADS(object):
 
         deltaHours = (self.etime - self.stime).total_seconds() / 3600
         numDaysNights = deltaHours / 12
-        numFiles = numDaysNights * self.numTilesForBbox()
+        numFiles = numDaysNights * self._numTilesForBbox()
 
         return numFiles
 
 
-    def timeChunks(self):
+    def _timeChunks(self):
         """Splits the time intervall between starttime and endtime into chunks.
         The number of files returned by the "searchFiles" function is below the
         6000 limit for each time chunk.
@@ -104,7 +119,7 @@ class searchLAADS(object):
         """
 
         #calculate number of chunks necessary
-        numChunks = self.estimNumFiles() / self.LAADSmaxFiles
+        numChunks = self._estimNumFiles() / self.LAADSmaxFiles
 
         #calculate time window for each chunk in hours
         deltaHours = (self.etime - self.stime).total_seconds() / 3600
@@ -233,20 +248,20 @@ class searchLAADS(object):
                 #self.product = ",".join([self.product, "MYD03"])
 
         #split time window in chunks
-        tchunks = self.timeChunks()
+        tchunks = self._timeChunks()
 
 	logger.debug("Number of time chunks: {0}".format(len(tchunks)))
         if len(tchunks) > 1:
-            logger.debug("It seems your are trying to search for many files. This may take a while...")
-            print("It seems your are trying to search for many files. This may take a while...")
+            msg = "It seems your are trying to search for many files. This may take a while..."
+            logger.info(msg)
         else:
-            logger.debug("Searching for files...")
-            print("Searching for files...")
+            msg = "Searching for files..."
+            logger.info(msg)
 
 
         for i in tqdm(range(len(tchunks))):
-            starttime = tchunks[i][0].strftime("%Y-%m-%d %H:%M")
-            endtime = tchunks[i][1].strftime("%Y-%m-%d %H:%M")
+            starttime = tchunks[i][0].strftime("%Y-%m-%d %H:%M:%S")
+            endtime = tchunks[i][1].strftime("%Y-%m-%d %H:%M:%S")
 	    
             logger.debug("Getting file IDs for chunk {0} of {1}: {2}".format(i,len(tchunks),(starttime,endtime)))
 
@@ -297,16 +312,18 @@ class searchLAADS(object):
         ------
         """
 
-        logger.debug("Dumping file URLs to text file")
+        logger.info("Dumping file URLs to text file")
 
         if len(self.fileURLs) < 1:
-            logger.debug("There are no URLs to write. Please retrive file URLs by using the \"searchFiles\" function first.")
-            print("There are no URLs to write. Please retrive file URLs by using the \"searchFiles\" function first.")
+            msg = "There are no URLs to write. Please retrive file URLs by using the \"searchFiles\" function first."
+            logger.debug(msg)
+            print(msg)
         else:
             #check if file exists
             if os.path.isfile(fname) & (not replace):
-                logger.debug("The file already exists. Please choose another name or set the \"replace\" parameter to True.")
-                print("The file already exists. Please choose another name or set the \"replace\" parameter to True.")
+                msg = "The file already exists. Please choose another name or set the \"replace\" parameter to True."
+                logger.debug(msg)
+                print(msg)
             else:
                 with open(fname, "w") as f:
                     for i in self.fileURLs:
@@ -341,7 +358,7 @@ class searchLAADS(object):
         pass
 
         
-    def downloadFiles(self, directory = None, maxRetries = 5, multiproc = False, numproc = 3):
+    def downloadFiles(self, directory = None, maxRetries = 5, multiproc = False, numproc = 3, overwrite = False):
         """Download URLs.
 
         TODO
@@ -359,6 +376,8 @@ class searchLAADS(object):
             Download multiple files at the same time.
         numproc: int optional
             Number of processes if multiproc is set to True
+        overwrite: boolean
+            Should existing files be overwritten?
 
         
         Return
@@ -422,8 +441,9 @@ class searchLAADS(object):
             if not os.path.exists(d):
                 os.makedirs(d)
 
-        logger.debug("Starting download of files...")
-        print("Starting download of files...")
+        msg = "Starting download of files..."
+        logger.info(msg)
+        #print(msg)
 
         pbar = tqdm(total = len(self.pathList))
 
@@ -460,7 +480,24 @@ class searchLAADS(object):
         Return
         ------
         return: File with URLs of broken files
+        return: 0 if file is correct, 1 for error
+
+        Notes
+        -----
+        Needs gdal installed
         """
+
+        directory = self.targetDir
+
+        ###############
+        #MOVE THIS FUNCTION TO A COMMON PLACE, THEN REMOVE FROM HERE AND FROM DOWNLOAD FUNCTION
+        ##############
+        def pathTuple(url, directory = directory):
+            secfield = os.path.basename(url).split(".")[1]
+            year = secfield[1:5]
+            outdir = os.path.join(directory, year)
+            return((url, outdir))
+
 
         def check(fpath):
             try:
@@ -468,8 +505,22 @@ class searchLAADS(object):
                 return 0
             except (RuntimeError) as e:
                 logger.error(e)
-                return 1 
+                return fpath 
 
+        if len(self.fileURLs) >= 1:
+            try:
+                if directory is not None:
+                    self.pathList = list(map(pathTuple, self.fileURLs))
+                else:
+                    raise TypeError
+            except TypeError:
+                print("""No target directory were to store files given. Instantiate search obejct with
+                        directory or set the directory parameter of downloadFiles.""")
+        else:
+            print("Search for files first.")
+
+
+        self.brokenFiles = []
         print("Checking files...")
 
         directory = self.targetDir
@@ -536,6 +587,9 @@ class searchLAADS(object):
         Text file with missing file URLs
         """
 
+
+        directory = self.targetDir
+
         ###############
         #MOVE THIS FUNCTION TO A COMMON PLACE, THEN REMOVE FROM HERE AND FROM DOWNLOAD FUNCTION
         ##############
@@ -546,7 +600,6 @@ class searchLAADS(object):
             year = secfield[1:5]
             outdir = os.path.join(directory, year)
             return((url, outdir))
-
 
         #TODO
         #make it possible to instantiate object/ read in list of urls and directory with files
@@ -561,7 +614,7 @@ class searchLAADS(object):
                 print("""No target directory were to store files given. Instantiate search obejct with
                         directory or set the directory parameter of downloadFiles.""")
         else:
-            print("Search for files first.")
+            print("Search for files or read in URLs from file first ")
 
         #list for urls of missing files
         fmissing = []
@@ -585,6 +638,37 @@ class searchLAADS(object):
 
         pass
 
+    
+    def estimateHDDspace(self, nsamples = 20):
+        """Estimate disk space needed to download all files
+        found in search.
 
+        Parameters
+        ----------
+        nsamples: integer
+            number of samples to consider for estimating needed space, default 20
+
+        Returns
+        -------
+        float
+        """
+        print("Estimating needed HDD space. This may take a couple of seconds.")
+        size = 0
+
+        fids = random.sample(range(len(self.fileURLs)), nsamples)
+        sampledURLs = [self.fileURLs[i] for i in fids]
+
+        for url in sampledURLs:
+            response = urllib2.urlopen(url)
+            csize = response.info().get("Content-Length")
+            if csize is None:
+                csize = 0
+            size += float(csize)
+
+        #convert file size to Mb and calculate mean
+        size = float(size)/1024.0/1024.0/nsamples*len(self.fileURLs)
+        print("The download of the files for the selected time intervall and domain approximately needs {space:d} Mb of hard disk space".format(space = int(size)))
+
+        return size
 
 # if __name__ == "__main__":

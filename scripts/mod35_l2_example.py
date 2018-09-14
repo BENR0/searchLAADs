@@ -1,14 +1,25 @@
 from searchlaads.searchLAADS import searchLAADS
+import sys
+import logging
 import logging.config
 
-#setting up optional logging
-logging.basicConfig(level = logging.DEBUG,
-                    format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
-                    datefmt='%m-%d %H:%M',
-                    filename='debug.log',
-                    filemode='a')
+logFormatter = logging.Formatter("%(asctime)s %(name)-12s %(levelname)-8s %(message)s")
+consoleFormatter = logging.Formatter("%(message)s")
 
-logger = logging.getLogger(__name__)
+#configure root logger
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+
+#set file log
+fileHandler = logging.FileHandler("debug.log")
+fileHandler.setFormatter(logFormatter)
+fileHandler.setLevel(logging.DEBUG)
+logger.addHandler(fileHandler)
+
+consoleHandler = logging.StreamHandler(sys.stdout)
+consoleHandler.setFormatter(consoleFormatter)
+consoleHandler.setLevel(logging.INFO)
+logger.addHandler(consoleHandler)
 
 
 #MOD35_L2 available between

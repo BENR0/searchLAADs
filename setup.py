@@ -9,10 +9,10 @@ config = {
     'url': 'https://github.com/BENR0/searchLAADs',
     'download_url': 'https://github.com/BENR0/searchLAADs',
     'author_email': '.',
-    'version': '0.2',
-    'install_requires': ['nose', 'SOAPpy', 'progressbar2'],
+    'version': '0.3',
+    'install_requires': ['nose', 'SOAPpy', 'tqdm', "gdal"],
     'packages': ['searchlaads'],
-    'scripts': ['scripts/mod35_l2.py'],
+    'scripts': ['scripts/mod35_l2_example.py'],
     'name': 'searchLAADS'
 }
 
