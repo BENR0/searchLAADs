@@ -26,7 +26,9 @@ module, but might be added as needed in the future.
 Installation
 ------------
 Download or clone the repository. cd into the directory and install with:
-    pip install -e .
+```
+pip install -e .
+```
 
 Usage
 -----
