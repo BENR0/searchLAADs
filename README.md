@@ -23,6 +23,11 @@ Not all of the functions at this link are incorporated into the searchLAADS
 module, but might be added as needed in the future.
 
 
+Installation
+------------
+Download or clone the repository. cd into the directory and install with:
+    pip install -e .
+
 Usage
 -----
 
