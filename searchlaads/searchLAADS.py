@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import math
+import textwrap
 # import progressbar
 import urllib2
 import re
@@ -668,9 +669,11 @@ class searchLAADS(object):
         #convert file size to Mb and calculate mean
         avg_size = float(size)/1024.0/1024.0/nsamples
         size = avg_size * len(self.fileURLs)
-        print("The download of the files for the selected time intervall and domain
-              approximately needs:\n {space:d} Mb\nAverage file size:
-              {avg:d} Mb".format(space = int(size), avg = int(avg_size)))
+        msg = textwrap.dedent("""
+            The download of the files for the selected time intervall and domain approximately needs:
+            {space:d} Mb
+            Average file size: {avg:d} Mb""").format(space = int(size), avg = int(avg_size))
+        print(msg)
 
         return size
 
