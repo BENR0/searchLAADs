@@ -251,7 +251,7 @@ class searchLAADS(object):
         #split time window in chunks
         tchunks = self._timeChunks()
 
-	logger.debug("Number of time chunks: {0}".format(len(tchunks)))
+        logger.debug("Number of time chunks: {0}".format(len(tchunks)))
         if len(tchunks) > 1:
             msg = "It seems your are trying to search for many files. This may take a while..."
             logger.info(msg)
