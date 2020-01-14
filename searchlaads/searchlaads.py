@@ -3,7 +3,7 @@ import os
 import math
 import textwrap
 # import progressbar
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import re
 import logging
 import random
@@ -405,12 +405,12 @@ class searchLAADS(object):
             if not os.path.isfile(fpath):
                 while attempts < maxRetries:
                     try:
-                        response = urllib2.urlopen(url)
+                        response = urllib.request.urlopen(url)
                         with open(fpath, "wb") as f:
                             f.write(response.read())
 
                         break
-                    except urllib2.URLError as e:
+                    except urllib.error.URLError as e:
                         logger.debug(e)
                         logger.debug("File {0} failed to download with the above error".format(url))
                         if attempts == maxRetries -1:
