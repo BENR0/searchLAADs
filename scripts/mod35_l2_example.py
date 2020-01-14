@@ -1,4 +1,4 @@
-from searchlaads.searchLAADS import searchLAADS
+from searchlaads.searchlaads import searchLAADS
 import sys
 import logging
 import logging.config
