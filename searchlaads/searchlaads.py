@@ -7,7 +7,6 @@ import urllib.request, urllib.error, urllib.parse
 import re
 import logging
 import random
-import gdal
 from tqdm import tqdm
 from SOAPpy import WSDL
 from SOAPpy import SOAPProxy
@@ -487,6 +486,10 @@ class searchLAADS(object):
         -----
         Needs gdal installed
         """
+        try:
+            import gdal
+        except ImportError:
+            raise ImportError("This function needs GDAL installed. It seems this is not the case.")
 
         directory = self.targetDir
 
